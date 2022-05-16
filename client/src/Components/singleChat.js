@@ -10,6 +10,7 @@ import "./styles.css";
 import ScrollableChat from "./scrollableChat";
 import io from "socket.io-client";
 // import { response } from "express";
+import Player from "./miscellaneous/player";
 
 const ENDPOINT = "https://hse-chat.herokuapp.com/";
 // const ENDPOINT = "https://localhost:5000";
@@ -22,6 +23,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
     const [socketConnected, setSocketConnected] = useState(false);
     const [typing, setTyping] = useState(false);
     const [isTyping, setIsTyping] = useState(false);
+    const [playMessage, setPlayMessage] = useState(false);
 
     const {user, selectedChat, setSelectedChat, notification, setNotification} = ChatState();
     const toast = useToast();
@@ -114,6 +116,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
 
     const typingHandler = (event) => {
         setNewMessage(event.target.value);
+        setPlayMessage(true);
         if (!socketConnected) return;
         if (!typing) {
             setTyping(true);
@@ -132,15 +135,52 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
         }, timerLength);
     }
 
-    const handleTranslate = (event) => {
+    const handleTranslate = async (event) => {
         if (event.key === "Enter" && newMessage) {
-            toast({
-                title: "Testing",
-                status: "success",
-                duration: 5000,
-                isClosable: true,
-                position: "bottom",
-            });
+            try {
+                const IAM_TOKEN = "t1.9euelZrImMbHmMiLy5HJzZjIm5CKmu3rnpWaipzKxozGk5vHzpKVlsfMmZXl8_cILHZr-e89UQtc_d3z90hac2v57z1RC1z9.Zmuyek1WfbR4jpoDEcT8FxwNSZ7CFReJcdiZXVL5tZHNOHGBwaEVKLmrD9jf-ppoC3Vd62fVcnOCOP4G8iXDBg";
+                const folder_id = "b1gocltv7nqqa6dujfr4";
+                const target_language = "en";
+                const text = [newMessage];
+
+                const data = new FormData();
+                data.append("targetLanguageCode", target_language);
+                data.append("texts", text);
+                data.append("folderId", folder_id);
+                const headers = {
+                    "Content-type": "application/json",
+                    "Authorization": `Bearer ${IAM_TOKEN}`,
+                };
+
+                const response = await fetch("https://translate.api.cloud.yandex.net/translate/v2/translate", {
+                    body: data,
+                    headers: headers,
+                });
+
+                // const response = await fetch("https://api.npms.io/v2/search?q=react");
+                // fetch("www.thecocktaildb.com/api/json/v1/1/random.php").then(response => response.json()).then(data => console.log(data));
+                if (!response.ok) {
+                    toast({
+                        title: "Testing",
+                        status: "success",
+                        duration: 5000,
+                        isClosable: true,
+                        position: "bottom",
+                    })
+                } else {
+                    const data = await response.json();
+                    console.log(data);
+                }
+            } catch (err) {
+                toast({
+                    title: "Error occured",
+                    description: "error",
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                    position: "bottom",
+                });
+            }
         }
     };
 
@@ -207,6 +247,10 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                     {isTyping
                     ? <div>Typing...</div>
                     : <></>}
+                    {playMessage
+                    ? <Player url="http://streaming.tdiradio.com:8000/house.mp3"/>
+                    : <></>}
+                    {/* <Player url="http://streaming.tdiradio.com:8000/house.mp3"/> */}
                     <Input 
                         variant="filled"
                         bg="#E0E0E0"
