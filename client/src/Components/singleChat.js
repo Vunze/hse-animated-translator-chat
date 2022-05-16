@@ -12,6 +12,7 @@ import io from "socket.io-client";
 // import { response } from "express";
 
 const ENDPOINT = "https://hse-chat.herokuapp.com/";
+// const ENDPOINT = "https://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({fetchAgain, setFetchAgain}) => {
@@ -131,6 +132,18 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
         }, timerLength);
     }
 
+    const handleTranslate = (event) => {
+        if (event.key === "Enter" && newMessage) {
+            toast({
+                title: "Testing",
+                status: "success",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+        }
+    };
+
     return <>
         {selectedChat ? (
             <>
@@ -190,7 +203,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                         <ScrollableChat messages={messages}/>
                     </div>
                 )}
-                <FormControl onKeyDown={sendMessage} isRequired mt={3}>
+                <FormControl onKeyDown={(event) => {sendMessage(event); handleTranslate(event)}} isRequired mt={3}>
                     {isTyping
                     ? <div>Typing...</div>
                     : <></>}
