@@ -77,15 +77,41 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 }
             } else {
                 setMessages([...messages, newMessageReceived]);
+                setPlayMessage(newMessageReceived);
             }
         })
     });
+    
+    const handleTranslate = async () => {
+        try {
+            const config = {
+                headers: {
+                    "Content-Type" : "application/json",
+                    Authorization: `Bearer ${user.token}`,
+                },
+            };
+            const {data} = await axios.post("/api/message/translate", {
+                message: newMessage,
+            }, config);
+            return data.translations[0].text;
+        } catch (err) {
+            toast({
+                title: "Error occured",
+                description: err.message,
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+                position: "bottom",
+            });
+        }
+    };
 
     const sendMessage = async (event) => {
         if (event.key === "Enter" && newMessage) {
-            // fetch("https://181a-34-136-81-154.ngrok.io/synthesize/text").then((response) => {
-            //     response.json();
-            // }).then((data) => console.log(data));
+            setPlayMessage("");
+            const post_message = await handleTranslate();
+            setPlayMessage("");
+            setPlayMessage(post_message);
             try {
                 const config = {
                     headers: {
@@ -95,7 +121,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 };
                 setNewMessage("");
                 const {data} = await axios.post("/api/message", {
-                    content: newMessage,
+                    content: post_message,
                     chatId: selectedChat._id,
                 }, config);
                 socket.emit("new message", data);
@@ -133,72 +159,6 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
         }, timerLength);
     }
 
-    const handleTranslate = async (event) => {
-        if (event.key === "Enter" && newMessage) {
-            setPlayMessage("");
-            setPlayMessage(newMessage)
-            // try{    
-            //     // const axiosConfig = {
-            //     //     method: "POST",
-            //     //     url: "https://translate.api.cloud.yandex.net/translate/v2/translate",
-            //     //     headers: {
-            //     //         Authorization: `Api-key AQVN1FyfogFoN8HRGA-UuQS-mmz483zNfg5b2jT0`
-            //     //     },
-            //     //     data: {
-            //     //         targetLanguageCode: "en",
-            //     //         texts: [newMessage],
-            //     //         folderId: "b1gocltv7nqqa6dujfr4"
-            //     //     }
-            //     // }
-            //     // axios(axiosConfig).then(response => {
-            //     //     console.log(response.json());
-            //     // })       
-
-            //     // const IAM_TOKEN = "t1.9euelZrImMbHmMiLy5HJzZjIm5CKmu3rnpWaipzKxozGk5vHzpKVlsfMmZXl8_cILHZr-e89UQtc_d3z90hac2v57z1RC1z9.Zmuyek1WfbR4jpoDEcT8FxwNSZ7CFReJcdiZXVL5tZHNOHGBwaEVKLmrD9jf-ppoC3Vd62fVcnOCOP4G8iXDBg";
-            //     // const folder_id = "b1gocltv7nqqa6dujfr4";
-            //     // const target_language = "en";
-            //     // const text = [newMessage, ""];
-
-            //     // const data = new FormData();
-            //     // data.append("targetLanguageCode", target_language);
-            //     // data.append("texts", text);
-            //     // data.append("folderId", folder_id);
-            //     // const headers = {
-            //     //     "Content-Type": "application/json",
-            //     //     "Authorization": `Bearer ${IAM_TOKEN}`,
-            //     // };
-
-            //     // const response = await fetch("https://translate.api.cloud.yandex.net/translate/v2/translate/", {
-            //     //     method: "POST",
-            //     //     mode: "cors",
-            //     //     body: data,
-            //     //     headers: headers,
-            //     // });
-            //     // console.log(response.json());
-            //     const config = {
-            //         headers: {
-            //             "Content-Type" : "application/json",
-            //             Authorization: `Bearer ${user.token}`,
-            //         },
-            //     };
-            //     const {data} = await axios.post("/api/message/translate", {
-            //         message: newMessage,
-            //     }, config);
-            //     console.log(data);
-
-            // } catch (err) {
-            //     toast({
-            //         title: "Error occured",
-            //         description: err.message,
-            //         status: "error",
-            //         duration: 5000,
-            //         isClosable: true,
-            //         position: "bottom",
-            //     });
-            // }
-        }
-    };
-
     return <>
         {selectedChat ? (
             <>
@@ -234,6 +194,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                     </>
                 )}
             </Text>
+            
             <Box
                 display="flex"
                 flexDir="column"
@@ -260,10 +221,10 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 )}
                 {
                     playMessage && !newMessage
-                        ? <Player url={`https://5405-34-135-72-38.ngrok.io/synthesize/${playMessage}`}/>
-                        : <></>
+                    ? <Player url={`http://c47a-34-143-156-146.ngrok.io/synthesize/${playMessage}`}/>
+                    : <></>
                 }
-                <FormControl onKeyDown={(event) => {sendMessage(event); handleTranslate(event)}} isRequired mt={3}>
+                <FormControl onKeyDown={(event) => {sendMessage(event)}} isRequired mt={3}>
                     {isTyping
                     ? <div>Typing...</div>
                     : <></>}

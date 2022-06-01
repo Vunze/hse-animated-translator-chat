@@ -2,6 +2,8 @@ const asyncHandler = require("express-async-handler");
 const Chat = require("../models/ChatModel");
 const Message = require("../models/MessageModel");
 const User = require("../models/UserModel");
+const { serviceClients, Session, cloudApi } = require("@yandex-cloud/nodejs-sdk");
+const fetch = require('node-fetch');
 
 const sendMessage = asyncHandler(async (req, res) => {
     const {content, chatId} = req.body;
@@ -46,4 +48,36 @@ const allMessages = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = {sendMessage, allMessages};
+const translate = asyncHandler(async (req, res) => {
+    const {message} = req.body;
+    if (!message) {
+        res.sendStatus(400);
+    }
+    try {
+        const iam_token = process.env.IAM_TOKEN;
+        const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${iam_token}`,
+        };
+
+        const body = {
+            texts: [message],
+            folderId: process.env.FOLDER_ID,
+            targetLanguageCode: "en",
+        };
+
+        const response = await fetch("https://translate.api.cloud.yandex.net/translate/v2/translate", {
+            method: "POST",
+            body: JSON.stringify(body),
+            headers: headers,
+        });
+        const data = await response.json();
+        res.json(data);
+    } catch (err) {
+        res.status(401);
+        console.log(err.message);
+        throw new Error(err.message);
+    }
+})
+
+module.exports = {sendMessage, allMessages, translate};
