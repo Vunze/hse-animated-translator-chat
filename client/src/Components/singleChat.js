@@ -9,11 +9,10 @@ import axios from "axios";
 import "./styles.css";
 import ScrollableChat from "./scrollableChat";
 import io from "socket.io-client";
-// import { response } from "express";
 import Player from "./miscellaneous/player";
 
-const ENDPOINT = "https://hse-chat.herokuapp.com/";
-// const ENDPOINT = "https://localhost:5000";
+// const ENDPOINT = "https://hse-chat.herokuapp.com/";
+const ENDPOINT = "https://localhost:5000";
 var socket, selectedChatCompare;
 
 const SingleChat = ({fetchAgain, setFetchAgain}) => {
@@ -141,40 +140,40 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                 const IAM_TOKEN = "t1.9euelZrImMbHmMiLy5HJzZjIm5CKmu3rnpWaipzKxozGk5vHzpKVlsfMmZXl8_cILHZr-e89UQtc_d3z90hac2v57z1RC1z9.Zmuyek1WfbR4jpoDEcT8FxwNSZ7CFReJcdiZXVL5tZHNOHGBwaEVKLmrD9jf-ppoC3Vd62fVcnOCOP4G8iXDBg";
                 const folder_id = "b1gocltv7nqqa6dujfr4";
                 const target_language = "en";
-                const text = [newMessage];
+                const text = [newMessage, ""];
 
                 const data = new FormData();
                 data.append("targetLanguageCode", target_language);
                 data.append("texts", text);
                 data.append("folderId", folder_id);
                 const headers = {
-                    "Content-type": "application/json",
+                    "Content-Type": "application/json",
                     "Authorization": `Bearer ${IAM_TOKEN}`,
                 };
 
-                const response = await fetch("https://translate.api.cloud.yandex.net/translate/v2/translate", {
-                    body: data,
+                const response = await fetch("https://translate.api.cloud.yandex.net/translate/v2/translate/", {
+                    method: "POST",
+                    "targetLanguageCode": target_language,
+                    "texts": text,
+                    "folderId": folder_id,
                     headers: headers,
                 });
+                console.log(response.json());
+                // const config = {
+                //     headers: {
+                //         "Content-Type" : "application/json",
+                //         Authorization: `Bearer ${user.token}`,
+                //     },
+                // };
+                // const {data} = await axios.get("/api/message/translate", {
+                //     content: newMessage,
+                // }, config);
+                // console.log(data);
 
-                // const response = await fetch("https://api.npms.io/v2/search?q=react");
-                // fetch("www.thecocktaildb.com/api/json/v1/1/random.php").then(response => response.json()).then(data => console.log(data));
-                if (!response.ok) {
-                    toast({
-                        title: "Testing",
-                        status: "success",
-                        duration: 5000,
-                        isClosable: true,
-                        position: "bottom",
-                    })
-                } else {
-                    const data = await response.json();
-                    console.log(data);
-                }
             } catch (err) {
                 toast({
                     title: "Error occured",
-                    description: "error",
+                    description: err.message,
                     status: "error",
                     duration: 5000,
                     isClosable: true,
@@ -248,7 +247,7 @@ const SingleChat = ({fetchAgain, setFetchAgain}) => {
                     ? <div>Typing...</div>
                     : <></>}
                     {playMessage
-                    ? <Player url="http://streaming.tdiradio.com:8000/house.mp3"/>
+                    ? <Player url={`https://070a-35-238-25-183.ngrok.io/synthesize/${newMessage}`}/>
                     : <></>}
                     {/* <Player url="http://streaming.tdiradio.com:8000/house.mp3"/> */}
                     <Input 
